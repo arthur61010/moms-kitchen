@@ -1,0 +1,14 @@
+# secrets
+PASSCODE.txt
+.env
+.env.*
+!.env.example
+# logs / local runtime
+*.log
+node_modules/
+# test outputs & third-party test photos (CC BY-SA, not ours)
+test/out_*.json
+test/*.jpg
+# screenshots (docs only, kept locally)
+screenshot-*.png
+.DS_Store

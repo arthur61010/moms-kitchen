@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>媽媽的廚房</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="媽媽的廚房">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#fbf4e6">
+<style>
+  /* 日系繪本風：jf open 粉圓 (OFL)，完整繁中字形；不用 Zen Maru Gothic 以免日式漢字字形混雜 */
+  @font-face { font-family:"Huninn"; src:url("/huninn.woff2") format("woff2"); font-display:swap; }
+  :root { --paper:#fbf4e6; --ink:#5a4636; --soft:#8a7462; --tomato:#e07a5f; --tomato-d:#c9644b;
+          --leaf:#81b29a; --leaf-d:#6a9a83; --butter:#f2cc8f; --sky:#a8c8d8; --card:#fffaf0; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html { background:var(--paper); }
+  body { margin:0 auto; max-width:560px; font-family:"Huninn","PingFang TC","Hiragino Maru Gothic ProN","Noto Sans TC",sans-serif;
+         color:var(--ink); font-size:22px; line-height:1.7; letter-spacing:.03em;
+         padding:calc(env(safe-area-inset-top) + 8px) 18px calc(env(safe-area-inset-bottom) + 28px);
+         background-color:var(--paper);
+         background-image: radial-gradient(rgba(150,110,70,.07) 1px, transparent 1.2px), radial-gradient(rgba(150,110,70,.05) 1px, transparent 1.2px);
+         background-size: 7px 7px, 13px 13px; background-position:0 0, 3px 5px; }
+  header { text-align:center; position:relative; padding-top:6px; }
+  header .hero { width:100%; max-width:340px; height:auto; display:block; margin:0 auto -6px; }
+  h1 { font-size:36px; margin:0; font-weight:700; letter-spacing:.12em; }
+  h1 .u { background:linear-gradient(transparent 62%, rgba(242,204,143,.75) 62%); padding:0 4px; }
+  h2 { font-size:26px; margin:26px 0 10px; display:flex; align-items:center; gap:8px; }
+  h2::before { content:""; width:22px; height:22px; border-radius:50% 45% 55% 50%; background:var(--butter); display:inline-block; }
+  h4 { margin:14px 0 4px; font-size:22px; color:var(--leaf-d); }
+  .sub { color:var(--soft); margin:6px 0 18px; text-align:center; font-size:21px; }
+  .banner { background:#fdf0d5; border:2px dashed var(--butter); border-radius:18px; padding:10px 14px; margin:12px 0; font-size:19px; }
+  .btn { display:flex; align-items:center; gap:14px; width:100%; border:2.5px solid var(--ink); border-radius:26px 22px 28px 20px / 22px 28px 20px 26px;
+         padding:18px 20px; margin:16px 0; font:inherit; font-size:26px; font-weight:700; color:#fff; background:var(--tomato);
+         box-shadow:4px 5px 0 rgba(90,70,54,.22); cursor:pointer; text-align:left; transition:transform .08s, box-shadow .08s; }
+  .btn:active { transform:translate(3px,4px); box-shadow:1px 1px 0 rgba(90,70,54,.22); }
+  .btn svg { flex:0 0 56px; height:56px; background:rgba(255,255,255,.9); border-radius:50%; padding:6px; }
+  .btn small { display:block; font-size:18px; font-weight:500; opacity:.92; }
+  .btn.alt { background:var(--leaf); }
+  .btn.ghost { background:var(--card); color:var(--ink); font-size:22px; justify-content:center; text-align:center; padding:14px; }
+  .btn.ghost svg { background:none; }
+  .btn:disabled { opacity:.55; }
+  .hidden { display:none !important; }
+  img.preview { width:100%; max-height:300px; object-fit:contain; border-radius:18px; background:#efe5d2; border:2.5px solid var(--ink); padding:6px; transform:rotate(-1deg); }
+  .item { display:flex; gap:8px; margin:10px 0; }
+  .item input { flex:1; font:inherit; font-size:22px; padding:12px; border:2px solid #cdbba3; border-radius:14px; min-width:0; background:var(--card); color:var(--ink); }
+  .item input.amt { flex:0 0 32%; }
+  .item button { font-size:22px; width:52px; border:2px solid #e8b4a6; border-radius:50%; background:#fbe3dc; color:var(--tomato-d); }
+  textarea { width:100%; font:inherit; font-size:20px; padding:12px; border:2px solid #cdbba3; border-radius:16px; background:var(--card); color:var(--ink); }
+  .card { position:relative; background:var(--card); border:2.5px solid var(--ink); border-radius:24px 20px 26px 18px / 20px 26px 18px 24px;
+          padding:22px 18px 18px; margin:24px 0; box-shadow:5px 6px 0 rgba(129,178,154,.45);
+          background-image: repeating-linear-gradient(transparent 0 37px, rgba(168,200,216,.25) 37px 38px); }
+  .card::before { content:""; position:absolute; top:-12px; left:50%; width:90px; height:24px; transform:translateX(-50%) rotate(-3deg);
+          background:rgba(242,204,143,.8); border-radius:3px; }
+  .card h3 { font-size:30px; margin:4px 0 6px; color:var(--tomato-d); }
+  .meta { color:var(--soft); font-size:20px; }
+  .card ol, .card ul { padding-left:1.4em; } .card li { margin:8px 0; }
+  .card ol li::marker { color:var(--tomato); font-weight:700; }
+  .tip { background:#eaf3ec; border-radius:16px; padding:10px 14px; font-size:20px; border:2px dashed var(--leaf); }
+  .loading { text-align:center; font-size:24px; padding:24px 0; }
+  .loading svg { width:110px; height:110px; display:block; margin:0 auto 6px; }
+  .steam { animation:steam 1.6s ease-in-out infinite; } .steam:nth-child(2){animation-delay:.4s} .steam:nth-child(3){animation-delay:.8s}
+  @keyframes steam { 0%{opacity:0; transform:translateY(6px)} 50%{opacity:1} 100%{opacity:0; transform:translateY(-8px)} }
+  .err { background:#fbe3dc; color:var(--tomato-d); border:2px dashed var(--tomato); border-radius:16px; padding:12px; }
+  footer { text-align:center; margin-top:28px; } footer svg { width:220px; opacity:.85; }
+  .modal { position:fixed; inset:0; background:rgba(90,70,54,.35); display:flex; align-items:center; justify-content:center; padding:20px; z-index:10; }
+  .modal-card { background:var(--card); border:2.5px solid var(--ink); border-radius:28px 24px 30px 22px / 24px 30px 22px 28px; padding:22px 20px 10px;
+                width:100%; max-width:380px; text-align:center; box-shadow:5px 6px 0 rgba(224,122,95,.4); }
+  .modal-card h2 { justify-content:center; margin:6px 0 2px; } .nodot::before { display:none !important; }
+  .modal-sub { color:var(--soft); font-size:20px; margin:4px 0 14px; }
+  #passInput { width:100%; font:inherit; font-size:36px; letter-spacing:.4em; text-align:center; padding:12px; border:2.5px solid #cdbba3; border-radius:18px; background:#fff; color:var(--ink); }
+  .pass-err { color:var(--tomato-d); margin-top:10px; font-size:20px; }
+</style>
+</head>
+<body>
+<header>
+<svg class="hero" viewBox="0 0 340 120" aria-hidden="true">
+  <!-- pot -->
+  <path class="steam" d="M150 30 q-6 -8 0 -16 q6 -8 0 -14" fill="none" stroke="#5a4636" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/>
+  <path class="steam" d="M170 28 q-6 -8 0 -16 q6 -8 0 -14" fill="none" stroke="#5a4636" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/>
+  <path class="steam" d="M190 30 q-6 -8 0 -16 q6 -8 0 -14" fill="none" stroke="#5a4636" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/>
+  <ellipse cx="170" cy="46" rx="44" ry="7" fill="#e07a5f" stroke="#5a4636" stroke-width="2.5"/>
+  <path d="M128 48 q2 44 42 46 q40 -2 42 -46" fill="#e07a5f" stroke="#5a4636" stroke-width="2.5"/>
+  <path d="M126 56 h-12 M214 56 h12" fill="none" stroke="#5a4636" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+  <circle cx="170" cy="38" r="4" fill="#f2cc8f" stroke="#5a4636" stroke-width="2"/>
+  <path d="M150 70 q4 3 8 0 M182 70 q4 3 8 0" fill="none" stroke="#5a4636" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M164 78 q6 5 12 0" fill="none" stroke="#5a4636" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="146" cy="76" r="4" fill="#f4a6a0" opacity=".7"/><circle cx="194" cy="76" r="4" fill="#f4a6a0" opacity=".7"/>
+  <!-- tomato -->
+  <circle cx="58" cy="78" r="24" fill="#e98a73" stroke="#5a4636" stroke-width="2.5"/>
+  <path d="M48 56 l10 6 l10 -6 l-4 9 M58 62 v-10" fill="#81b29a" fill="none" stroke="#5a4636" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M46 72 q3 -6 8 -6" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" opacity=".7"/>
+  <!-- carrot -->
+  <path d="M84 104 l20 -40 q8 -6 12 4 z" fill="#f2a65a" stroke="#5a4636" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M108 62 q-4 -14 4 -18 M112 64 q4 -12 14 -12 M110 63 q8 -6 12 -18" fill="none" stroke="#5a4636" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke="#6a9a83"/>
+  <!-- cabbage -->
+  <circle cx="270" cy="80" r="26" fill="#cfe3c4" stroke="#5a4636" stroke-width="2.5"/>
+  <path d="M270 56 q-14 22 0 50 M252 66 q10 14 18 14 q8 0 18 -14 M248 90 q22 4 44 0" fill="none" stroke="#5a4636" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke="#6a9a83"/>
+  <!-- egg -->
+  <path d="M312 104 q-16 0 -14 -18 q2 -18 14 -18 q12 0 14 18 q2 18 -14 18z" fill="#fffaf0" stroke="#5a4636" stroke-width="2.5"/>
+  <!-- sparkles -->
+  <path d="M100 22 v10 M95 27 h10 M244 18 v10 M239 23 h10" fill="none" stroke="#5a4636" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke="#f2cc8f" stroke-width="3"/>
+  <circle cx="30" cy="36" r="3" fill="#a8c8d8"/><circle cx="314" cy="40" r="3" fill="#f4a6a0"/>
+</svg>
+<h1><span class="u">媽媽的廚房</span></h1>
+</header>
+<p class="sub">拍一張照片，今天煮什麼交給我 ♪</p>
+<div id="mockBanner" class="banner hidden">⚠️ 示範模式：目前沒有設定 AI 金鑰，顯示的是範例資料。</div>
+
+<section id="stepPick">
+  <button class="btn" data-kind="order"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 6 h24 v36 l-4 -3 l-4 3 l-4 -3 l-4 3 l-4 -3 l-4 3z" fill="#fffaf0"  stroke="#5a4636" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 16 h12 M18 23 h12 M18 30 h7" fill="none" stroke="#5a4636" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>上傳買菜訂單<small>Uber Eats 截圖</small></span></button>
+  <button class="btn alt" data-kind="fridge"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="14" width="36" height="24" rx="6" fill="#fffaf0" stroke="#5a4636" stroke-width="2.5"/><path d="M17 14 l3 -5 h8 l3 5" fill="none" stroke="#5a4636" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="26" r="7" fill="#a8c8d8" stroke="#5a4636" stroke-width="2.5"/></svg><span>拍冰箱裡的食材<small>打開冰箱拍一張</small></span></button>
+  <button class="btn ghost" id="manualBtn"><svg viewBox="0 0 48 48" width="34" height="34" aria-hidden="true"><path d="M10 38 l4 -10 l18 -18 l6 6 l-18 18z" fill="#f2cc8f" stroke="#5a4636" stroke-width="2.5" stroke-linejoin="round"/><path d="M14 28 l6 6" fill="none" stroke="#5a4636" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>自己輸入食材</button>
+  <input type="file" id="fileOrder" accept="image/*" class="hidden">
+  <input type="file" id="fileFridge" accept="image/*" capture="environment" class="hidden">
+</section>
+
+<section id="stepList" class="hidden">
+  <img id="preview" class="preview hidden" alt="照片">
+  <h2>食材清單（可修改）</h2>
+  <div id="items"></div>
+  <button class="btn ghost" id="addItem">＋ 新增一樣食材</button>
+  <h2>其他需求（可不填）</h2>
+  <textarea id="prefs" rows="2" placeholder="例如：少油、不要辣、兩個人吃、30分鐘內"></textarea>
+  <button class="btn" id="genBtn" style="justify-content:center"><span style="margin:0 auto">幫我想食譜 ♪</span></button>
+  <button class="btn ghost" data-restart>↩︎ 重新開始</button>
+</section>
+
+<div id="loading" class="loading hidden"><svg viewBox="0 0 110 110" aria-hidden="true"><path class="steam" d="M40 34 q-5 -7 0 -14 q5 -7 0 -12" fill="none" stroke="#5a4636" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/><path class="steam" d="M55 32 q-5 -7 0 -14 q5 -7 0 -12" fill="none" stroke="#5a4636" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/><path class="steam" d="M70 34 q-5 -7 0 -14 q5 -7 0 -12" fill="none" stroke="#5a4636" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/><ellipse cx="55" cy="48" rx="34" ry="6" fill="#81b29a" stroke="#5a4636" stroke-width="2.5"/><path d="M23 50 q2 36 32 38 q30 -2 32 -38" fill="#81b29a" stroke="#5a4636" stroke-width="2.5"/><path d="M42 66 q4 3 8 0 M60 66 q4 3 8 0" fill="none" stroke="#5a4636" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="loadingText">處理中…</span></div>
+<div id="error" class="err hidden"></div>
+
+<section id="stepRecipes" class="hidden">
+  <h2>今天可以煮</h2>
+  <div id="recipes"></div>
+  <button class="btn ghost" id="backList">↩︎ 回到食材清單</button>
+  <button class="btn ghost" data-restart>🏠 重新開始</button>
+</section>
+
+<footer><svg viewBox="0 0 220 30" aria-hidden="true"><path d="M5 20 q20 -14 40 0 t40 0 t40 0 t40 0 t40 0" fill="none" stroke="#5a4636" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke="#cdbba3"/><circle cx="110" cy="20" r="6" fill="#e07a5f" stroke="#5a4636" stroke-width="2"/></svg></footer>
+<div id="passModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="passTitle">
+  <div class="modal-card">
+    <svg viewBox="0 0 120 90" width="120" height="90" aria-hidden="true">
+      <rect x="30" y="38" width="60" height="44" rx="12" fill="#f2cc8f" stroke="#5a4636" stroke-width="2.5"/>
+      <path d="M42 38 v-10 a18 18 0 0 1 36 0 v10" fill="none" stroke="#5a4636" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="60" cy="56" r="6" fill="#e07a5f" stroke="#5a4636" stroke-width="2"/><path d="M60 62 v8" stroke="#5a4636" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M14 20 v8 M10 24 h8 M104 14 v8 M100 18 h8" stroke="#f2cc8f" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <h2 id="passTitle" class="nodot">請輸入通關密碼</h2>
+    <p class="modal-sub">只要輸入一次，這支手機就會記住囉 ♪</p>
+    <input id="passInput" type="tel" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="8" placeholder="••••••">
+    <div id="passErr" class="pass-err hidden">密碼不對喔，再試一次 🙂</div>
+    <button class="btn" id="passOk" style="justify-content:center"><span>確定</span></button>
+  </div>
+</div>
+<script>
+const $ = s => document.querySelector(s);
+let passcode = localStorage.getItem('mk_pass') || '';
+const show = (id, on=true) => $(id).classList.toggle('hidden', !on);
+
+// 通關密碼：存在這支手機（localStorage），只需輸入一次
+let passWaiters = [];
+function askPasscode(wrong=false) {
+  show('#passErr', wrong); $('#passInput').value = ''; show('#passModal');
+  setTimeout(() => $('#passInput').focus(), 100);
+  return new Promise(ok => passWaiters.push(ok));
+}
+async function submitPass() {
+  const v = $('#passInput').value.trim(); if (!v) return;
+  const r = await fetch('/api/check', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({passcode:v}) }).catch(()=>null);
+  if (r && r.ok) { passcode = v; localStorage.setItem('mk_pass', v); show('#passModal', false); passWaiters.splice(0).forEach(f => f()); }
+  else { show('#passErr'); $('#passErr').textContent = r && r.status === 429 ? '試太多次了，請休息 10 分鐘再試' : '密碼不對喔，再試一次 🙂'; $('#passInput').value=''; }
+}
+$('#passOk').onclick = submitPass;
+$('#passInput').addEventListener('keydown', e => { if (e.key === 'Enter') submitPass(); });
+const ready = fetch('/api/status').then(r=>r.json()).then(async s => {
+  show('#mockBanner', s.mock);
+  if (s.needPasscode && !passcode) await askPasscode();
+}).catch(()=>{});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
+
+async function api(path, data) {
+  await ready;
+  const r = await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({...data, passcode}) });
+  const j = await r.json().catch(()=>({error:'伺服器沒有回應'}));
+  if (r.status === 401) { localStorage.removeItem('mk_pass'); passcode=''; setLoading(''); await askPasscode(true); return api(path, data); }
+  if (!r.ok) throw new Error(j.error || '發生錯誤');
+  return j;
+}
+function setLoading(text) { show('#loading', !!text); $('#loadingText').textContent = text || ''; show('#error', false); }
+function showError(msg) { setLoading(''); $('#error').textContent = '😥 ' + msg; show('#error'); }
+
+// shrink photo on the phone before upload (faster + cheaper)
+function shrink(file, max=1280) {
+  return new Promise((ok, fail) => {
+    const img = new Image(); const url = URL.createObjectURL(file);
+    img.onload = () => { const s = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width*s); c.height = Math.round(img.height*s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url); ok(c.toDataURL('image/jpeg', 0.85)); };
+    img.onerror = () => fail(new Error('讀不到這張照片')); img.src = url;
+  });
+}
+
+function addRow(name='', amount='') {
+  const d = document.createElement('div'); d.className = 'item';
+  d.innerHTML = '<input class="nm" placeholder="食材"><input class="amt" placeholder="份量"><button aria-label="刪除">✕</button>';
+  d.querySelector('.nm').value = name; d.querySelector('.amt').value = amount;
+  d.querySelector('button').onclick = () => d.remove();
+  $('#items').appendChild(d);
+}
+function goList(list, img) {
+  $('#items').innerHTML = ''; list.forEach(i => addRow(i.name, i.amount)); if (!list.length) addRow();
+  $('#preview').src = img || ''; show('#preview', !!img);
+  show('#stepPick', false); show('#stepRecipes', false); show('#stepList'); window.scrollTo(0,0);
+}
+
+document.querySelectorAll('[data-kind]').forEach(b => b.onclick = () =>
+  $(b.dataset.kind === 'order' ? '#fileOrder' : '#fileFridge').click());
+[['#fileOrder','order'],['#fileFridge','fridge']].forEach(([sel, kind]) => $(sel).onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try { setLoading('正在看照片裡有哪些食材…'); const img = await shrink(f);
+    const j = await api('/api/ingredients', { image: img, kind }); setLoading(''); goList(j.ingredients || [], img);
+  } catch (err) { showError(err.message); }
+});
+$('#manualBtn').onclick = () => goList([]);
+$('#addItem').onclick = () => addRow();
+document.querySelectorAll('[data-restart]').forEach(b => b.onclick = () => {
+  show('#stepList', false); show('#stepRecipes', false); show('#error', false); show('#stepPick'); window.scrollTo(0,0); });
+$('#backList').onclick = () => { show('#stepRecipes', false); show('#stepList'); window.scrollTo(0,0); };
+
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+$('#genBtn').onclick = async () => {
+  const list = [...document.querySelectorAll('#items .item')].map(d =>
+    (d.querySelector('.nm').value.trim() + ' ' + d.querySelector('.amt').value.trim()).trim()).filter(Boolean);
+  if (!list.length) return showError('請至少輸入一樣食材');
+  try { $('#genBtn').disabled = true; setLoading('正在想食譜，大約 10–20 秒…');
+    const j = await api('/api/recipes', { ingredients: list, prefs: $('#prefs').value });
+    $('#recipes').innerHTML = (j.recipes || []).map(r => `<div class="card"><h3>${esc(r.name)}</h3>
+      <div class="meta">⏱ ${esc(r.time)}　🍚 ${esc(r.servings)}</div>
+      <h4>材料</h4><ul>${(r.ingredients||[]).map(i=>`<li>${esc(i)}</li>`).join('')}</ul>
+      <h4>做法</h4><ol>${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join('')}</ol>
+      ${r.tip ? `<div class="tip">💡 ${esc(r.tip)}</div>` : ''}</div>`).join('');
+    setLoading(''); show('#stepList', false); show('#stepRecipes'); window.scrollTo(0,0);
+  } catch (err) { showError(err.message); } finally { $('#genBtn').disabled = false; }
+};
+// 預覽用：網址加 #demo 會自動用範例食材產生食譜
+if (location.hash === '#demo') ready.then(() => { goList([{name:'番茄',amount:'2顆'},{name:'雞蛋',amount:'3顆'}]); $('#genBtn').click(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+# Render Blueprint — 媽媽的廚房（免費方案測試用）
+services:
+  - type: web
+    name: moms-kitchen
+    runtime: node
+    plan: free
+    region: singapore          # 離台灣最近
+    buildCommand: npm install  # 沒有相依套件，幾秒就完成
+    startCommand: npm start
+    healthCheckPath: /api/status
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: GEMINI_API_KEY
+        sync: false            # 部署時在 Render 介面貼上，不進 git
+      - key: APP_PASSCODE
+        sync: false            # 給媽媽的通關密碼，不進 git
