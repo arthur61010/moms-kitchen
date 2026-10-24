@@ -1,4 +1,4 @@
-# 媽媽的廚房 (Mom's Kitchen) — 原型
+# 家庭煮婦 (Mom's Kitchen) — 原型
 
 iPhone 優先的 PWA：上傳 Uber Eats 訂單截圖或拍冰箱 → AI 辨識食材（可編輯）→ 產生 3 道台灣家常菜食譜。日系繪本風 UI。
 

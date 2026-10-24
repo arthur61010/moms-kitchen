@@ -1,4 +1,4 @@
-# Render Blueprint — 媽媽的廚房（免費方案測試用）
+# Render Blueprint — 家庭煮婦（免費方案測試用）
 services:
   - type: web
     name: moms-kitchen

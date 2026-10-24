@@ -2,7 +2,7 @@
   "name": "moms-kitchen",
   "version": "0.1.0",
   "private": true,
-  "description": "媽媽的廚房 — 拍照生成家常菜食譜",
+  "description": "家庭煮婦 — 拍照生成家常菜食譜",
   "main": "server.js",
   "scripts": { "start": "node server.js" },
   "engines": { "node": ">=20" }
