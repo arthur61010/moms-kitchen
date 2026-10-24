@@ -24,3 +24,11 @@ OPENAI_API_KEY=sk-...  node server.js     # 或 GEMINI_API_KEY=...；都沒設 =
 4. 網址為 `https://moms-kitchen-xxxx.onrender.com`。免費方案閒置 15 分鐘會休眠，下次打開約需 1 分鐘喚醒。
 
 測試照片 `test/Open_refrigerator_with_food_at_night.jpg`（W.carter, CC BY-SA 4.0, Wikimedia Commons）不納入 git。
+
+## 花費上限（每月 NT$50）
+- 每次呼叫 Gemini 後，依回傳的 `usageMetadata` 實際 token 數 × 官方價目（https://ai.google.dev/gemini-api/docs/pricing ，思考 token 算在輸出）累計花費；未列價的模型一律用較高的 $1.50/$7.50 每百萬 token 估算。
+- `MONTHLY_BUDGET_TWD`（預設 50）、`USD_TWD`（預設 33，略高於實際匯率）。每次呼叫前預留 US$0.02，額度不夠就婉拒並顯示「這個月的 AI 額度用完囉，下個月再來唷 🌙」。台北時間每月 1 號歸零。
+- `DAILY_LIMIT_PER_USER`（預設 10 次／裝置或 IP／天），超過顯示「今天已經用了 10 次囉，明天再來找我吧 ☀️」。
+- 失敗或逾時的呼叫也計入次數；額度檢查出錯時一律拒絕（fail closed）。
+- 剩餘額度只在 `/api/status` 的 `budget` 欄位顯示，不出現在主畫面。
+- ⚠️ Render 免費方案的磁碟在休眠／重新部署時會清空，`data/usage.json` 會跟著歸零，所以這只是「軟上限」。真正的硬上限請在 Google 端設定（AI Studio → Spend → Monthly spend cap，或使用預付且關閉自動加值）。

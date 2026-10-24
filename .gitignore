@@ -12,3 +12,5 @@ test/*.jpg
 # screenshots (docs only, kept locally)
 screenshot-*.png
 .DS_Store
+DEPLOY_HOOK.txt
+data/

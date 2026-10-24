@@ -3,6 +3,7 @@
 // Optional: OPENAI_MODEL (default gpt-4o-mini), GEMINI_MODEL (default gemini-3.5-flash), GEMINI_FALLBACK_MODEL, GEMINI_THINKING, AI_TIMEOUT_MS, PORT (default 8787),
 //           APP_PASSCODE (if set, client must send it — protects your API quota on a public URL).
 const http = require('http');
+const budget = require('./budget');
 const fs = require('fs');
 const path = require('path');
 
@@ -12,8 +13,9 @@ const GEMINI_KEY = process.env.GEMINI_API_KEY;
 const PASSCODE = process.env.APP_PASSCODE || '';
 const PROVIDER = OPENAI_KEY ? 'openai' : GEMINI_KEY ? 'gemini' : 'mock';
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
-const GEMINI_FALLBACK = process.env.GEMINI_FALLBACK_MODEL || 'gemini-3.5-flash-lite';
+// 預設用 3.5 Flash-Lite：官方價目表上最便宜的 Flash（$0.30 / $2.50 每百萬 tokens），實測 4–10 秒、繁中食譜品質足夠
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
+const GEMINI_FALLBACK = process.env.GEMINI_FALLBACK_MODEL || 'gemini-3.5-flash';
 const GEMINI_THINKING = process.env.GEMINI_THINKING || 'low';   // low = 快；gemini-3.8-flash 實測太慢（簡單問題 28 秒以上）
 const AI_TIMEOUT_MS = +process.env.AI_TIMEOUT_MS || 45000;
 const PUB = path.join(__dirname, 'public');
@@ -47,7 +49,7 @@ function parseJSON(text) {
   return JSON.parse(m ? m[0] : text);
 }
 
-async function callLLM(prompt, imageDataUrl) {
+async function callLLM(prompt, imageDataUrl, user = 'anon') {
   if (PROVIDER === 'openai') {
     const content = [{ type: 'text', text: prompt }];
     if (imageDataUrl) content.push({ type: 'image_url', image_url: { url: imageDataUrl, detail: 'auto' } });
@@ -59,6 +61,7 @@ async function callLLM(prompt, imageDataUrl) {
     });
     const j = await r.json();
     if (!r.ok) throw Object.assign(new Error(j.error?.message || 'OpenAI error'), { status: r.status });
+    await budget.record(user, OPENAI_MODEL, j.usage);
     return parseJSON(j.choices[0].message.content);
   }
   if (PROVIDER === 'gemini') {
@@ -71,20 +74,23 @@ async function callLLM(prompt, imageDataUrl) {
       const t0 = Date.now();
       const gen = { responseMimeType: 'application/json' };
       if (!/lite/.test(model) && GEMINI_THINKING) gen.thinkingConfig = { thinkingLevel: GEMINI_THINKING };
-      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      let r;
+      try { r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
         method: 'POST', signal: AbortSignal.timeout(AI_TIMEOUT_MS),
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_KEY },
         body: JSON.stringify({ contents: [{ parts }], generationConfig: gen }),
-      });
+      }); } catch (e) { await budget.countOnly(user); throw e; } // 逾時：可能已計費，至少算一次
       const j = await r.json();
       if (!r.ok) throw Object.assign(new Error(j.error?.message || 'Gemini error'), { status: r.status });
-      console.log(new Date().toISOString(), model, `${Date.now() - t0}ms`, JSON.stringify(j.usageMetadata || {}));
+      const usd = await budget.record(user, model, j.usageMetadata);
+      console.log(new Date().toISOString(), model, `${Date.now() - t0}ms`, `$${usd.toFixed(5)}`, JSON.stringify(j.usageMetadata || {}));
       return parseJSON(j.candidates[0].content.parts.filter(p => !p.thought).map(p => p.text || '').join(''));
     };
     try { return await tryModel(GEMINI_MODEL); }
     catch (e) {
       // 額度/金鑰問題換模型也沒用；其他錯誤（忙碌、逾時、503）改用備援模型
       if (!GEMINI_FALLBACK || [400, 401, 402, 403].includes(e.status)) throw e;
+      const blocked = await budget.check(user); if (blocked) throw Object.assign(new Error(blocked.error), { limit: blocked });
       console.error(new Date().toISOString(), GEMINI_MODEL, 'failed, fallback:', e.status || e.name, e.message);
       return await tryModel(GEMINI_FALLBACK);
     }
@@ -106,7 +112,7 @@ const MOCK_RECIPES = { recipes: [
 
 const FAILS = new Map(); // 密碼錯誤次數（每個 IP，10 分鐘 10 次）
 async function handleApi(req, res, url) {
-  if (url.pathname === '/api/status') return send(res, 200, { provider: PROVIDER, mock: PROVIDER === 'mock', needPasscode: !!PASSCODE });
+  if (url.pathname === '/api/status') return send(res, 200, { provider: PROVIDER, mock: PROVIDER === 'mock', needPasscode: !!PASSCODE, budget: await budget.status() });
   if (req.method !== 'POST') return send(res, 405, { error: 'POST only' });
   let body;
   const ip = req.headers['cf-connecting-ip'] || req.socket.remoteAddress;
@@ -116,20 +122,27 @@ async function handleApi(req, res, url) {
   try { body = JSON.parse(await readBody(req)); } catch { return send(res, 400, { error: '圖片太大或格式錯誤' }); }
   if (PASSCODE && String(body.passcode || '') !== PASSCODE) { rec.n++; FAILS.set(ip, rec); return send(res, 401, { error: '通關密碼錯誤' }); }
   if (url.pathname === '/api/check') return send(res, 200, { ok: true });
+  // 每台裝置一個隨機 ID（存在手機 localStorage）；沒有就用 IP
+  const user = /^[a-z0-9-]{8,64}$/i.test(String(body.device || '')) ? 'd:' + body.device : 'ip:' + ip;
+  if (PROVIDER !== 'mock' && /^\/api\/(ingredients|recipes)$/.test(url.pathname)) {
+    const blocked = await budget.check(user);
+    if (blocked) return send(res, blocked.status, { error: blocked.error, code: blocked.code });
+  }
   try {
     if (url.pathname === '/api/ingredients') {
       if (!/^data:image\//.test(body.image || '')) return send(res, 400, { error: '請提供圖片' });
       if (PROVIDER === 'mock') return send(res, 200, { ...MOCK_INGREDIENTS, mock: true });
-      return send(res, 200, await callLLM(PROMPT_INGREDIENTS(body.kind), body.image));
+      return send(res, 200, await callLLM(PROMPT_INGREDIENTS(body.kind), body.image, user));
     }
     if (url.pathname === '/api/recipes') {
       const list = (body.ingredients || []).map(String).filter(Boolean).slice(0, 60);
       if (!list.length) return send(res, 400, { error: '請至少輸入一樣食材' });
       if (PROVIDER === 'mock') return send(res, 200, { ...MOCK_RECIPES, mock: true });
-      return send(res, 200, await callLLM(PROMPT_RECIPES(list, String(body.prefs || '').slice(0, 200))));
+      return send(res, 200, await callLLM(PROMPT_RECIPES(list, String(body.prefs || '').slice(0, 200)), null, user));
     }
     send(res, 404, { error: 'not found' });
   } catch (e) {
+    if (e.limit) return send(res, e.limit.status, { error: e.limit.error, code: e.limit.code });
     console.error(new Date().toISOString(), e.status || '', e.message);
     const msg = e.status === 402 ? 'AI 的額度用完了，請通知 Arthur 儲值' :
                 e.status === 429 ? 'AI 現在太忙了，請等一分鐘再試' :
@@ -138,7 +151,7 @@ async function handleApi(req, res, url) {
   }
 }
 
-http.createServer(async (req, res) => {
+const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   if (url.pathname.startsWith('/api/')) return handleApi(req, res, url);
   let p = path.normalize(decodeURIComponent(url.pathname)).replace(/^(\.\.[\/\\])+/, '');
@@ -150,4 +163,8 @@ http.createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream' });
     res.end(data);
   });
-}).listen(PORT, () => console.log(`Mom's Kitchen on http://localhost:${PORT}  provider=${PROVIDER}`));
+});
+budget.init().then(async () => {
+  server.listen(PORT, () => console.log(`Mom's Kitchen on http://localhost:${PORT}  provider=${PROVIDER}`));
+  console.log('budget', JSON.stringify(await budget.status()));
+});

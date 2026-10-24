@@ -64,6 +64,7 @@
   .loading svg { width:110px; height:110px; display:block; margin:0 auto 6px; }
   .steam { animation:steam 1.6s ease-in-out infinite; } .steam:nth-child(2){animation-delay:.4s} .steam:nth-child(3){animation-delay:.8s}
   @keyframes steam { 0%{opacity:0; transform:translateY(6px)} 50%{opacity:1} 100%{opacity:0; transform:translateY(-8px)} }
+  .err.soft { background:#eaf3ec; color:var(--ink); border-color:var(--leaf); text-align:center; font-size:22px; padding:18px 14px; }
   .err { background:#fbe3dc; color:var(--tomato-d); border:2px dashed var(--tomato); border-radius:16px; padding:12px; }
   footer { text-align:center; margin-top:26px; } footer svg { width:300px; max-width:100%; height:auto; }
   .modal { position:fixed; inset:0; background:rgba(90,70,54,.35); display:flex; align-items:center; justify-content:center; padding:20px; z-index:10; }
@@ -180,6 +181,8 @@
 <script>
 const $ = s => document.querySelector(s);
 let passcode = localStorage.getItem('mk_pass') || '';
+let device = localStorage.getItem('mk_device');
+if (!device) { device = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)); localStorage.setItem('mk_device', device); }
 const show = (id, on=true) => $(id).classList.toggle('hidden', !on);
 
 // 通關密碼：存在這支手機（localStorage），只需輸入一次
@@ -205,14 +208,14 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
 
 async function api(path, data) {
   await ready;
-  const r = await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({...data, passcode}) });
+  const r = await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({...data, passcode, device}) });
   const j = await r.json().catch(()=>({error:'伺服器沒有回應'}));
   if (r.status === 401) { localStorage.removeItem('mk_pass'); passcode=''; setLoading(''); await askPasscode(true); return api(path, data); }
-  if (!r.ok) throw new Error(j.error || '發生錯誤');
+  if (!r.ok) throw Object.assign(new Error(j.error || '發生錯誤'), { limit: r.status === 429 });
   return j;
 }
 function setLoading(text) { show('#loading', !!text); $('#loadingText').textContent = text || ''; show('#error', false); }
-function showError(msg) { setLoading(''); $('#error').textContent = '😥 ' + msg; show('#error'); }
+function showError(msg, soft) { setLoading(''); $('#error').textContent = (soft ? '🍵 ' : '😥 ') + msg; $('#error').classList.toggle('soft', !!soft); show('#error'); }
 
 // shrink photo on the phone before upload (faster + cheaper)
 function shrink(file, max=1280) {
@@ -244,7 +247,7 @@ document.querySelectorAll('[data-kind]').forEach(b => b.onclick = () =>
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
   try { setLoading('正在看照片裡有哪些食材…'); const img = await shrink(f);
     const j = await api('/api/ingredients', { image: img, kind }); setLoading(''); goList(j.ingredients || [], img);
-  } catch (err) { showError(err.message); }
+  } catch (err) { showError(err.message, err.limit); }
 });
 $('#manualBtn').onclick = () => goList([]);
 $('#addItem').onclick = () => addRow();
@@ -265,7 +268,7 @@ $('#genBtn').onclick = async () => {
       <h4>做法</h4><ol>${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join('')}</ol>
       ${r.tip ? `<div class="tip">💡 ${esc(r.tip)}</div>` : ''}</div>`).join('');
     setLoading(''); show('#stepList', false); show('#stepRecipes'); window.scrollTo(0,0);
-  } catch (err) { showError(err.message); } finally { $('#genBtn').disabled = false; }
+  } catch (err) { showError(err.message, err.limit); } finally { $('#genBtn').disabled = false; }
 };
 // 預覽用：網址加 #demo 會自動用範例食材產生食譜
 if (location.hash === '#demo') ready.then(() => { goList([{name:'番茄',amount:'2顆'},{name:'雞蛋',amount:'3顆'}]); $('#genBtn').click(); });

@@ -3,7 +3,10 @@ from PIL import Image
 def img(path):
     im=Image.open(path).convert('RGB'); im.thumbnail((1280,1280)); b=io.BytesIO(); im.save(b,'JPEG',quality=85)
     return 'data:image/jpeg;base64,'+base64.b64encode(b.getvalue()).decode()
+import os
+PASS=os.environ.get('APP_PASSCODE','')
 def post(p, d):
+    d=dict(d, passcode=PASS, device='e2e-test-device')
     t=time.time(); r=urllib.request.urlopen(urllib.request.Request('http://localhost:8787'+p, json.dumps(d).encode(), {'Content-Type':'application/json'}), timeout=120)
     return json.load(r), time.time()-t
 for path, kind in [('test/order.png','order'),('test/Open_refrigerator_with_food_at_night.jpg','fridge')]:
